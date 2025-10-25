@@ -24,20 +24,20 @@ public final class GameLoader {
             JSONArray pages = root.getJSONArray("pages");
             for (int i = 0; i < pages.length(); i++) {
                 JSONObject page = pages.getJSONObject(i);
+                int timeLimit = page.optInt("timeLimit", 0);
                 JSONObject el = page.getJSONArray("elements").getJSONObject(0);
                 String type = el.getString("type");
                 String qTitle = el.getString("title");
 
                 switch (type) {
                     case "radiogroup" -> {
-                        List<String> choices = el.getJSONArray("choices")
-                                .toList().stream().map(Object::toString).toList();
+                        var choices = el.getJSONArray("choices").toList().stream().map(Object::toString).toList();
                         String correct = el.getString("correctAnswer");
-                        qs.add(new FullQuestion(qTitle, choices, correct));
+                        qs.add(new FullQuestion(qTitle, choices, correct, timeLimit));   // <-- pass
                     }
                     case "boolean" -> {
                         boolean correct = el.getBoolean("correctAnswer");
-                        qs.add(new Answers(qTitle, correct));
+                        qs.add(new Answers(qTitle, correct, timeLimit));          // <-- pass
                     }
                     default -> throw new IllegalArgumentException("Unsupported type: " + type);
                 }

@@ -15,6 +15,12 @@
         <Label fx:id="scoreLabel" style="-fx-font-weight:bold;"/>
     </HBox>
 
+    <HBox spacing="10">
+        <Label text="Time:"/>
+        <Label fx:id="timerLabel" text="—"/>
+        <ProgressBar fx:id="timerBar" prefWidth="250"/>
+    </HBox>
+
     <!-- Radio question area -->
     <VBox fx:id="radioBox" spacing="8">
         <Label text="Choose one:"/>

@@ -24,7 +24,7 @@ public class MenuController {
     public void initialize() {
         var gm = GameManager.get();
         if (gm.getPlayer() != null) {
-            welcomeLabel.setText("Logged in as: " + gm.getPlayer().getFullname());
+            welcomeLabel.setText("Hi, " + gm.getPlayer().getFullname());
         } else {
             welcomeLabel.setText("Not signed in");
         }

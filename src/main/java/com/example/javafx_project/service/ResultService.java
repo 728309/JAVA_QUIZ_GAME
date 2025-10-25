@@ -40,6 +40,7 @@ public final class ResultService {
                     .put("playerName", r.getPlayerName())
                     .put("totalQuestions", r.getTotal())
                     .put("correctQuestions", r.getCorrect())
+                    .put("points", r.getPoints())                 // <-- NEW
                     .put("date", r.getDate()));
 
             Files.writeString(file, root.toString(2), StandardCharsets.UTF_8,
@@ -61,12 +62,15 @@ public final class ResultService {
             List<Result> list = new ArrayList<>();
             for (int i = 0; i < arr.length(); i++) {
                 JSONObject o = arr.getJSONObject(i);
+                double pts = o.optDouble("points",
+                        o.optInt("correctQuestions", 0)); // fallback for old saves
                 list.add(new Result(
                         quizId,
                         root.optString("name", quizId),
                         o.getString("playerName"),
                         o.getInt("totalQuestions"),
                         o.getInt("correctQuestions"),
+                        pts,                                // <-- NEW
                         o.getString("date")
                 ));
             }

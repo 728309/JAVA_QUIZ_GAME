@@ -8,7 +8,7 @@
       spacing="12" alignment="CENTER">
     <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
 
-    <Label text="Quiz Game — Menu" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+    <Label text="Quiz Game — Menu" styleClass="title"/>
 
     <!-- This shows who is logged in -->
     <Label fx:id="welcomeLabel" text="Not signed in"/>

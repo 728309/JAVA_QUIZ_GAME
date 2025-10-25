@@ -22,10 +22,17 @@ public class GameController {
     @FXML private VBox radioBox;
     @FXML private Button nextBtn;
 
+    @FXML private Label timerLabel;
+    @FXML private ProgressBar timerBar;
+
     @FXML private Node boolBox; // HBox, but we can keep it as Node for visibility toggling
 
     private String selectedRadio = null; // track selection for radio
     private final ToggleGroup group = new ToggleGroup();
+    private javafx.animation.Timeline timeline;
+    private int timeTotal = 0;
+    private int timeLeft = 0;
+    private boolean answeredThisQuestion = false;
 
     @FXML
     public void initialize() {
@@ -37,12 +44,12 @@ public class GameController {
     private void updateHeader() {
         var gm = GameManager.get();
         progressLabel.setText((gm.currentIndex()+1) + " / " + gm.total());
-        scoreLabel.setText("Score: " + gm.getCorrect());
+        scoreLabel.setText(String.format("Score: %d  •  Points: %.2f", gm.getCorrect(), gm.getPoints()));
     }
 
     private void renderCurrent() {
         var gm = GameManager.get();
-        Question q = gm.currentQuestion();
+        var q = gm.currentQuestion();
         titleLabel.setText(q.getTitle());
 
         // Reset UI state
@@ -50,6 +57,16 @@ public class GameController {
         selectedRadio = null;
         group.getToggles().clear();
         radioBox.getChildren().removeIf(n -> n instanceof RadioButton); // remove old radios
+
+        // reset misc
+        stopTimer();
+        answeredThisQuestion = false;
+        nextBtn.setDisable(true);
+        selectedRadio = null;
+
+        // clear old radios
+        group.getToggles().clear();
+        radioBox.getChildren().removeIf(n -> n instanceof RadioButton);
 
         // Show appropriate area
         boolean isRadio = q instanceof FullQuestion;
@@ -64,6 +81,18 @@ public class GameController {
                 rb.setOnAction(e -> selectedRadio = choice);
                 radioBox.getChildren().add(radioBox.getChildren().size() - 1, rb); // before Submit button
             }
+        }
+
+        // start timer (if any)
+        timeTotal = Math.max(0, q.getTimeLimit());
+        if (timeTotal > 0) {
+            timeLeft = timeTotal;
+            timerLabel.setText(timeLeft + "s");
+            timerBar.setProgress(1.0);
+            startTimer();
+        } else {
+            timerLabel.setText("Untimed");
+            timerBar.setProgress(ProgressBar.INDETERMINATE_PROGRESS);
         }
     }
 
@@ -89,15 +118,31 @@ public class GameController {
     private void checkAnswerAndFeedback(Object answer) {
         var gm = GameManager.get();
         boolean correct = gm.currentQuestion().isCorrect(answer);
+        answeredThisQuestion = true;
+        stopTimer();
+
+        // compute seconds used
+        int used = 0;
+        int limit = gm.currentQuestion().getTimeLimit();
+        if (limit > 0) used = Math.max(0, limit - timeLeft);
+
+        double earned = 0.0;
         if (correct) {
             gm.addCorrect();
-            new Alert(Alert.AlertType.INFORMATION, " Correct!").showAndWait();
+            if (limit > 0) {
+                earned = 1.0 - (used / (double) limit);     // time-weighted
+            } else {
+                earned = 1.0;                                // untimed: full point
+            }
+            gm.addPoints(earned);
+            new Alert(Alert.AlertType.INFORMATION,
+                    String.format("✅ Correct! +%.2f pts", earned)).showAndWait();
         } else {
-            new Alert(Alert.AlertType.INFORMATION, " Incorrect.").showAndWait();
+            new Alert(Alert.AlertType.INFORMATION, " Incorrect. +0.00 pts").showAndWait();
         }
+
         updateHeader();
         nextBtn.setDisable(!gm.hasNext());
-        // If this was the last question, go to results
         if (!gm.hasNext()) {
             goResults();
         }
@@ -116,6 +161,7 @@ public class GameController {
 
     @FXML
     void onBack(ActionEvent e) {
+        stopTimer();
         try {
             Stage stage = (Stage)((Node)e.getSource()).getScene().getWindow();
             ViewLoader.switchTo(stage, "/com/example/javafx_project/Menu.fxml",
@@ -132,6 +178,34 @@ public class GameController {
                     "Results", 560, 380);
         } catch (Exception ex) {
             new Alert(Alert.AlertType.ERROR, ex.getMessage()).showAndWait();
+        }
+    }
+
+    private void startTimer() {
+        timeline = new javafx.animation.Timeline(
+                new javafx.animation.KeyFrame(javafx.util.Duration.seconds(1), e -> {
+                    timeLeft--;
+                    timerLabel.setText(timeLeft + "s");
+                    timerBar.setProgress(timeLeft / (double) timeTotal);
+                    if (timeLeft <= 0) {
+                        stopTimer();
+                        if (!answeredThisQuestion) {
+                            // time up → auto-check as wrong (no points)
+                            new Alert(Alert.AlertType.INFORMATION, "⏰ Time's up!").showAndWait();
+                            nextBtn.setDisable(!GameManager.get().hasNext());
+                            if (!GameManager.get().hasNext()) goResults();
+                        }
+                    }
+                })
+        );
+        timeline.setCycleCount(timeTotal);
+        timeline.playFromStart();
+    }
+
+    private void stopTimer() {
+        if (timeline != null) {
+            timeline.stop();
+            timeline = null;
         }
     }
 }

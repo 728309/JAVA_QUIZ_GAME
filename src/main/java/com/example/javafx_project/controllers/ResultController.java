@@ -26,13 +26,14 @@ public class ResultController {
     @FXML private TableColumn<Result, String> colScore;
     @FXML private TableColumn<Result, String> colPct;
     @FXML private TableColumn<Result, String> colDate;
+    @FXML private TableColumn<Result, String> colPoints;
 
     private Path savedFile;
     private final ObservableList<Result> items = FXCollections.observableArrayList();
 
     @FXML
     public void initialize() {
-        // Configure columns (string value factories)
+        // Configure columns
         colPlayer.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(c.getValue().getPlayerName()));
         colScore.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(
                 c.getValue().getCorrect() + " / " + c.getValue().getTotal()));
@@ -42,34 +43,40 @@ public class ResultController {
             return new javafx.beans.property.SimpleStringProperty(String.format("%.0f%%", pct));
         });
         colDate.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(c.getValue().getDate()));
+        colPoints.setCellValueFactory(c ->
+                new javafx.beans.property.SimpleStringProperty(String.format("%.2f", c.getValue().getPoints())));
         table.setItems(items);
 
         var gm = GameManager.get();
         var quiz = gm.getQuiz();
         var player = gm.getPlayer();
 
-        // If we arrived right after a quiz run, append the latest result first
         if (quiz != null) {
             String name = (player != null ? player.getFullname() : "Anonymous");
+
+            // ⬇️ include points from GameManager
             Result latest = new Result(
                     quiz.getQuizId(),
                     quiz.getTitle(),
                     name,
                     gm.total(),
                     gm.getCorrect(),
+                    gm.getPoints(),                       // <-- NEW
                     OffsetDateTime.now().toString()
             );
+
             ResultService.append(latest);
-            // reset game progress for next run
-            gm.reset();
+            gm.reset();                                   // reset for next run
             savedFile = ResultService.fileFor(quiz.getQuizId());
-            summaryLabel.setText("Latest: " + name + " • " + latest.getQuizName() +
-                    " • " + latest.getCorrect() + "/" + latest.getTotal());
+
+            summaryLabel.setText(String.format(
+                    "Latest: %s • %s • %d/%d (%.2f pts)",
+                    name, latest.getQuizName(), latest.getCorrect(), latest.getTotal(), latest.getPoints()
+            ));
+
             loadHistory(quiz.getQuizId());
         } else {
-            // If opened from the menu, try a default quiz file name (optional)
             summaryLabel.setText("No recent game. Opened history view.");
-            // table remains empty until a quiz is known; you can extend to choose one
         }
     }
 
