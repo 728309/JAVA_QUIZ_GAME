@@ -66,8 +66,9 @@ public class MenuController {
     }
 
     @FXML
-    void onViewResultsClick(ActionEvent e) {
-        showInfo("Results screen coming next.");
+    void onViewResultsClick(ActionEvent e) throws Exception {
+        Stage stage = (Stage)((Node)e.getSource()).getScene().getWindow();
+        ViewLoader.switchTo(stage, "/com/example/javafx_project/Results.fxml", "Results", 560, 420);
     }
 
     private void showInfo(String msg) {
