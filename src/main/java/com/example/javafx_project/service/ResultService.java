@@ -13,38 +13,41 @@ import java.util.List;
 public final class ResultService {
     private ResultService() {}
 
-    private static Path resultsDir() {
-        return Paths.get(System.getProperty("user.home"), "quiz-results");
+    private static Path dir() { return Paths.get(System.getProperty("user.home"), "quiz-results"); }
+    public static Path fileFor(String quizId) { return dir().resolve(quizId + "-results.json"); }
+
+    private static JSONObject loadOrInit(String quizId, String quizName) throws IOException {
+        Files.createDirectories(dir());
+        Path f = fileFor(quizId);
+        if (Files.exists(f)) {
+            return new JSONObject(Files.readString(f, StandardCharsets.UTF_8));
+        }
+        return new JSONObject()
+                .put("quizId", quizId)
+                .put("name", quizName)
+                .put("results", new JSONArray());
     }
 
-    public static Path fileFor(String quizId) {
-        return resultsDir().resolve(quizId + "-results.json");
+    private static void save(String quizId, JSONObject root) throws IOException {
+        Files.createDirectories(dir());
+        Files.writeString(
+                fileFor(quizId),
+                root.toString(2),
+                StandardCharsets.UTF_8,
+                StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING
+        );
     }
 
     public static void append(Result r) {
         try {
-            Files.createDirectories(resultsDir());
-            Path file = fileFor(r.getQuizId());
-
-            JSONObject root;
-            if (Files.exists(file)) {
-                root = new JSONObject(Files.readString(file, StandardCharsets.UTF_8));
-            } else {
-                root = new JSONObject()
-                        .put("quizId", r.getQuizId())
-                        .put("name", r.getQuizName())
-                        .put("results", new JSONArray());
-            }
-
+            JSONObject root = loadOrInit(r.getQuizId(), r.getQuizName());
             root.getJSONArray("results").put(new JSONObject()
                     .put("playerName", r.getPlayerName())
                     .put("totalQuestions", r.getTotal())
                     .put("correctQuestions", r.getCorrect())
-                    .put("points", r.getPoints())                 // <-- NEW
+                    .put("points", r.getPoints())
                     .put("date", r.getDate()));
-
-            Files.writeString(file, root.toString(2), StandardCharsets.UTF_8,
-                    StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+            save(r.getQuizId(), root);
         } catch (IOException e) {
             throw new RuntimeException("Failed to save results", e);
         }
@@ -52,29 +55,27 @@ public final class ResultService {
 
     public static List<Result> readAll(String quizId) {
         try {
-            Path file = fileFor(quizId);
-            if (!Files.exists(file)) return List.of();
+            Path f = fileFor(quizId);
+            if (!Files.exists(f)) return List.of();
 
-            String text = Files.readString(file, StandardCharsets.UTF_8);
-            JSONObject root = new JSONObject(text);
+            JSONObject root = new JSONObject(Files.readString(f, StandardCharsets.UTF_8));
             JSONArray arr = root.getJSONArray("results");
+            List<Result> out = new ArrayList<>();
 
-            List<Result> list = new ArrayList<>();
             for (int i = 0; i < arr.length(); i++) {
                 JSONObject o = arr.getJSONObject(i);
-                double pts = o.optDouble("points",
-                        o.optInt("correctQuestions", 0)); // fallback for old saves
-                list.add(new Result(
+                int correct = o.optInt("correctQuestions", 0);
+                out.add(new Result(
                         quizId,
                         root.optString("name", quizId),
-                        o.getString("playerName"),
-                        o.getInt("totalQuestions"),
-                        o.getInt("correctQuestions"),
-                        pts,                                // <-- NEW
-                        o.getString("date")
+                        o.optString("playerName", "Unknown"),
+                        o.optInt("totalQuestions", 0),
+                        correct,
+                        o.has("points") ? o.optDouble("points", correct) : correct, // backward compatible
+                        o.optString("date", "")
                 ));
             }
-            return list;
+            return out;
         } catch (IOException e) {
             throw new RuntimeException("Failed to read results", e);
         }

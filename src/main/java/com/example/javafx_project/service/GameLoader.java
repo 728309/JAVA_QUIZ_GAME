@@ -1,6 +1,9 @@
 package com.example.javafx_project.service;
 
-import com.example.javafx_project.model.*;
+import com.example.javafx_project.model.CombiQuestion;
+import com.example.javafx_project.model.Question;
+import com.example.javafx_project.model.QuestionType;
+import com.example.javafx_project.model.Quiz;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -17,6 +20,7 @@ public final class GameLoader {
         try {
             String text = Files.readString(file.toPath(), StandardCharsets.UTF_8);
             JSONObject root = new JSONObject(text);
+
             String quizId = root.optString("quizId", "quiz");
             String title  = root.optString("title", "Untitled Quiz");
 
@@ -25,23 +29,27 @@ public final class GameLoader {
             for (int i = 0; i < pages.length(); i++) {
                 JSONObject page = pages.getJSONObject(i);
                 int timeLimit = page.optInt("timeLimit", 0);
+
+                // assume one element per page (as in your JSON)
                 JSONObject el = page.getJSONArray("elements").getJSONObject(0);
-                String type = el.getString("type");
+                String type   = el.getString("type");
                 String qTitle = el.getString("title");
 
                 switch (type) {
                     case "radiogroup" -> {
-                        var choices = el.getJSONArray("choices").toList().stream().map(Object::toString).toList();
-                        String correct = el.getString("correctAnswer");
-                        qs.add(new FullQuestion(qTitle, choices, correct, timeLimit));   // <-- pass
+                        List<String> choices = el.getJSONArray("choices")
+                                .toList().stream().map(Object::toString).toList();
+                        String correct = el.get("correctAnswer").toString();
+                        qs.add(CombiQuestion.multiple(qTitle, choices, correct, timeLimit));
                     }
                     case "boolean" -> {
                         boolean correct = el.getBoolean("correctAnswer");
-                        qs.add(new Answers(qTitle, correct, timeLimit));          // <-- pass
+                        qs.add(CombiQuestion.bool(qTitle, correct, timeLimit));
                     }
-                    default -> throw new IllegalArgumentException("Unsupported type: " + type);
+                    default -> throw new IllegalArgumentException("Unsupported element type: " + type);
                 }
             }
+
             return new Quiz(quizId, title, qs);
         } catch (Exception e) {
             throw new RuntimeException("Failed to load quiz: " + e.getMessage(), e);

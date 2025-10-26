@@ -1,16 +1,17 @@
 package com.example.javafx_project.controllers;
 
 import com.example.javafx_project.helpers.GameManager;
-import com.example.javafx_project.helpers.ViewLoader;
+import com.example.javafx_project.helpers.Navigator;
+import com.example.javafx_project.helpers.Msg;
+import com.example.javafx_project.helpers.Paths;
 import com.example.javafx_project.model.Result;
 import com.example.javafx_project.service.ResultService;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.Node;
 import javafx.scene.control.*;
-import javafx.stage.Stage;
 
 import java.awt.Desktop;
 import java.io.IOException;
@@ -19,32 +20,16 @@ import java.time.OffsetDateTime;
 import java.util.List;
 
 public class ResultController {
-
     @FXML private Label summaryLabel;
     @FXML private TableView<Result> table;
-    @FXML private TableColumn<Result, String> colPlayer;
-    @FXML private TableColumn<Result, String> colScore;
-    @FXML private TableColumn<Result, String> colPct;
-    @FXML private TableColumn<Result, String> colDate;
-    @FXML private TableColumn<Result, String> colPoints;
+    @FXML private TableColumn<Result, String> colPlayer, colScore, colPct, colDate, colPoints;
 
     private Path savedFile;
     private final ObservableList<Result> items = FXCollections.observableArrayList();
 
     @FXML
     public void initialize() {
-        // Configure columns
-        colPlayer.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(c.getValue().getPlayerName()));
-        colScore.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(
-                c.getValue().getCorrect() + " / " + c.getValue().getTotal()));
-        colPct.setCellValueFactory(c -> {
-            double pct = (c.getValue().getTotal() == 0) ? 0.0 :
-                    (100.0 * c.getValue().getCorrect() / c.getValue().getTotal());
-            return new javafx.beans.property.SimpleStringProperty(String.format("%.0f%%", pct));
-        });
-        colDate.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(c.getValue().getDate()));
-        colPoints.setCellValueFactory(c ->
-                new javafx.beans.property.SimpleStringProperty(String.format("%.2f", c.getValue().getPoints())));
+        bindColumns();
         table.setItems(items);
 
         var gm = GameManager.get();
@@ -52,32 +37,42 @@ public class ResultController {
         var player = gm.getPlayer();
 
         if (quiz != null) {
-            String name = (player != null ? player.getFullname() : "Anonymous");
-
-            // ⬇️ include points from GameManager
-            Result latest = new Result(
+            var latest = new Result(
                     quiz.getQuizId(),
                     quiz.getTitle(),
-                    name,
-                    gm.total(),
-                    gm.getCorrect(),
-                    gm.getPoints(),                       // <-- NEW
+                    (player == null ? "Anonymous" : player.getFullname()),
+                    gm.total(), gm.getCorrect(), gm.getPoints(),
                     OffsetDateTime.now().toString()
             );
-
             ResultService.append(latest);
-            gm.reset();                                   // reset for next run
-            savedFile = ResultService.fileFor(quiz.getQuizId());
+            gm.reset();
 
+            savedFile = ResultService.fileFor(quiz.getQuizId());
             summaryLabel.setText(String.format(
                     "Latest: %s • %s • %d/%d (%.2f pts)",
-                    name, latest.getQuizName(), latest.getCorrect(), latest.getTotal(), latest.getPoints()
+                    latest.getPlayerName(), latest.getQuizName(),
+                    latest.getCorrect(), latest.getTotal(), latest.getPoints()
             ));
 
             loadHistory(quiz.getQuizId());
         } else {
             summaryLabel.setText("No recent game. Opened history view.");
         }
+    }
+
+    private void bindColumns() {
+        colPlayer.setCellValueFactory(c -> s(c.getValue().getPlayerName()));
+        colScore.setCellValueFactory(c -> s(c.getValue().getCorrect() + " / " + c.getValue().getTotal()));
+        colPct.setCellValueFactory(c -> {
+            double pct = c.getValue().getTotal() == 0 ? 0 : (100.0 * c.getValue().getCorrect() / c.getValue().getTotal());
+            return s(String.format("%.0f%%", pct));
+        });
+        colDate.setCellValueFactory(c -> s(c.getValue().getDate()));
+        colPoints.setCellValueFactory(c -> s(String.format("%.2f", c.getValue().getPoints())));
+    }
+
+    private static SimpleStringProperty s(String v) {
+        return new SimpleStringProperty(v);
     }
 
     private void loadHistory(String quizId) {
@@ -87,9 +82,7 @@ public class ResultController {
 
     @FXML
     public void onBack(ActionEvent e) throws Exception {
-        Stage stage = (Stage)((Node)e.getSource()).getScene().getWindow();
-        ViewLoader.switchTo(stage, "/com/example/javafx_project/Menu.fxml",
-                "Quiz Game — Menu", 480, 320);
+        Navigator.go(Navigator.stageOf(e), Paths.MENU, "Quiz Game — Menu", 480, 320);
     }
 
     @FXML
@@ -98,25 +91,17 @@ public class ResultController {
             if (savedFile == null && !items.isEmpty()) {
                 savedFile = ResultService.fileFor(items.get(0).getQuizId());
             }
-            if (savedFile == null) {
-                new Alert(Alert.AlertType.INFORMATION, "No results file yet. Play a quiz first.").showAndWait();
-                return;
-            }
-            if (Desktop.isDesktopSupported()) {
-                Desktop.getDesktop().open(savedFile.toFile());
-            } else {
-                new Alert(Alert.AlertType.INFORMATION,
-                        "Saved file: " + savedFile.toAbsolutePath()).showAndWait();
-            }
+            if (savedFile == null) { Msg.info("No results file yet. Play a quiz first."); return; }
+
+            if (Desktop.isDesktopSupported()) Desktop.getDesktop().open(savedFile.toFile());
+            else Msg.info("Saved file: " + savedFile.toAbsolutePath());
         } catch (IOException ex) {
-            new Alert(Alert.AlertType.ERROR, "Cannot open file: " + ex.getMessage()).showAndWait();
+            Msg.error("Cannot open file: " + ex.getMessage());
         }
     }
 
     @FXML
     public void onRefresh(ActionEvent e) {
-        if (!items.isEmpty()) {
-            loadHistory(items.get(0).getQuizId());
-        }
+        if (!items.isEmpty()) loadHistory(items.get(0).getQuizId());
     }
 }

@@ -3,38 +3,53 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
       fx:controller="com.example.javafx_project.controllers.GameController"
-      spacing="12" alignment="TOP_LEFT">
-    <padding><Insets top="16" right="16" bottom="16" left="16"/></padding>
+      spacing="16" alignment="TOP_LEFT" styleClass="card"
+      prefWidth="640" prefHeight="420">
+    <padding>
+        <Insets top="16" right="16" bottom="16" left="16"/>
+    </padding>
 
-    <HBox spacing="12">
-        <Label fx:id="titleLabel" style="-fx-font-size:16px; -fx-font-weight:bold;"/>
+    <!-- Header -->
+    <GridPane hgap="12" vgap="8">
+        <columnConstraints>
+            <ColumnConstraints hgrow="ALWAYS" />
+            <ColumnConstraints halignment="RIGHT" />
+        </columnConstraints>
+
+        <Label fx:id="titleLabel" GridPane.columnIndex="0"
+               wrapText="true" maxWidth="Infinity" styleClass="title"/>
+
+        <HBox spacing="12" GridPane.columnIndex="1" alignment="CENTER_RIGHT">
+            <Label fx:id="progressLabel" styleClass="subtitle"/>
+            <Label fx:id="scoreLabel"   styleClass="subtitle"/>
+        </HBox>
+    </GridPane>
+
+    <!-- Timer -->
+    <HBox spacing="10" alignment="CENTER_LEFT" styleClass="row">
+        <Label text="Time:" styleClass="subtitle"/>
+        <Label fx:id="timerLabel" styleClass="pill"/>
+        <HBox fx:id="timerBlocks" spacing="4"/>
         <Region HBox.hgrow="ALWAYS"/>
-        <Label fx:id="progressLabel"/>
-        <Label fx:id="scoreLabel" style="-fx-font-weight:bold;"/>
     </HBox>
 
-    <HBox spacing="10">
-        <Label text="Time:"/>
-        <Label fx:id="timerLabel" text="—"/>
-        <ProgressBar fx:id="timerBar" prefWidth="250"/>
-    </HBox>
-
-    <!-- Radio question area -->
-    <VBox fx:id="radioBox" spacing="8">
-        <Label text="Choose one:"/>
-        <Button text="Submit" onAction="#onSubmitRadio"/>
+    <!-- Question area (radio for both radio/boolean) -->
+    <VBox fx:id="radioBox" spacing="10" VBox.vgrow="ALWAYS">
+        <Label text="Choose one:" styleClass="subtitle"/>
+        <!-- choices inserted here by controller BEFORE this submit button -->
+        <Region VBox.vgrow="ALWAYS"/> <!-- pushes Submit to the bottom on tall windows -->
+        <Button fx:id="submitBtn" text="_Submit" mnemonicParsing="true"
+                onAction="#onSubmitRadio" styleClass="btn-primary btn-wide"/>
     </VBox>
 
-    <!-- Boolean question area -->
-    <HBox fx:id="boolBox" spacing="10" visible="false" managed="false">
-        <Button text="True"  onAction="#onAnswerTrue"/>
-        <Button text="False" onAction="#onAnswerFalse"/>
-    </HBox>
-
-    <HBox spacing="10">
-        <Button text="Back to Menu" onAction="#onBack"/>
-        <Button fx:id="nextBtn" text="Next Question" onAction="#onNext" disable="true"/>
+    <!-- Navigation -->
+    <HBox spacing="12" styleClass="row" alignment="CENTER_RIGHT">
+        <Button text="_Back to Menu" mnemonicParsing="true"
+                onAction="#onBack" styleClass="btn-ghost btn-wide" cancelButton="true"/>
+        <Button fx:id="nextBtn" text="_Next Question" mnemonicParsing="true"
+                onAction="#onNext" disable="true" styleClass="btn-wide"/>
     </HBox>
 </VBox>

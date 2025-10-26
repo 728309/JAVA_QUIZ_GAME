@@ -1,211 +1,246 @@
 package com.example.javafx_project.controllers;
 
 import com.example.javafx_project.helpers.GameManager;
-import com.example.javafx_project.helpers.ViewLoader;
-import com.example.javafx_project.model.Answers;
-import com.example.javafx_project.model.FullQuestion;
+import com.example.javafx_project.helpers.Navigator;
+import com.example.javafx_project.helpers.Msg;
+import com.example.javafx_project.helpers.Paths;
+import com.example.javafx_project.model.CombiQuestion;
 import com.example.javafx_project.model.Question;
-import com.example.javafx_project.model.FullQuestion;
+import com.example.javafx_project.service.TimeService;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
+import java.util.List;
+
 public class GameController {
+    private static final int SEGMENTS = 12;
 
-    @FXML private Label titleLabel;
-    @FXML private Label progressLabel;
-    @FXML private Label scoreLabel;
-
+    @FXML private Label titleLabel, progressLabel, scoreLabel, timerLabel;
+    @FXML private ProgressBar timerBar;          // optional; ok if null in FXML
     @FXML private VBox radioBox;
     @FXML private Button nextBtn;
+    @FXML private Button submitBtn;
+    @FXML private javafx.scene.layout.HBox timerBlocks;
 
-    @FXML private Label timerLabel;
-    @FXML private ProgressBar timerBar;
 
-    @FXML private Node boolBox; // HBox, but we can keep it as Node for visibility toggling
-
-    private String selectedRadio = null; // track selection for radio
     private final ToggleGroup group = new ToggleGroup();
-    private javafx.animation.Timeline timeline;
-    private int timeTotal = 0;
-    private int timeLeft = 0;
-    private boolean answeredThisQuestion = false;
+    private final GameManager gm = GameManager.get();
+
+    private String selectedRadio = null;
+    private TimeService timer;
+    private boolean answered = false;
 
     @FXML
     public void initialize() {
-        // Load first question
-        renderCurrent();
+        showCurrentQuestion();
         updateHeader();
     }
 
+    // ---------- UI / Header
+
     private void updateHeader() {
-        var gm = GameManager.get();
-        progressLabel.setText((gm.currentIndex()+1) + " / " + gm.total());
-        scoreLabel.setText(String.format("Score: %d  •  Points: %.2f", gm.getCorrect(), gm.getPoints()));
+        progressLabel.setText((gm.currentIndex() + 1) + " / " + gm.total());
+        scoreLabel.setText(String.format("Score: %d • Points: %.2f", gm.getCorrect(), gm.getPoints()));
     }
 
-    private void renderCurrent() {
-        var gm = GameManager.get();
+    private void showCurrentQuestion() {
         var q = gm.currentQuestion();
         titleLabel.setText(q.getTitle());
-
-        // Reset UI state
+        answered = false;
         nextBtn.setDisable(true);
-        selectedRadio = null;
-        group.getToggles().clear();
-        radioBox.getChildren().removeIf(n -> n instanceof RadioButton); // remove old radios
+        if (submitBtn != null) submitBtn.setDisable(false);
 
-        // reset misc
-        stopTimer();
-        answeredThisQuestion = false;
-        nextBtn.setDisable(true);
-        selectedRadio = null;
-
-        // clear old radios
+        // clear previous radios
         group.getToggles().clear();
         radioBox.getChildren().removeIf(n -> n instanceof RadioButton);
+        selectedRadio = null;
 
-        // Show appropriate area
-        boolean isRadio = q instanceof FullQuestion;
-        radioBox.setVisible(isRadio); radioBox.setManaged(isRadio);
-        boolBox.setVisible(!isRadio); boolBox.setManaged(!isRadio);
+        // render everything as radio (boolean -> "True"/"False")
+        renderRadioChoices(choicesOf(q));
 
-        if (isRadio) {
-            FullQuestion rq = (FullQuestion) q;
-            for (String choice : rq.getChoices()) {
-                RadioButton rb = new RadioButton(choice);
-                rb.setToggleGroup(group);
-                rb.setOnAction(e -> selectedRadio = choice);
-                radioBox.getChildren().add(radioBox.getChildren().size() - 1, rb); // before Submit button
-            }
-        }
+        // timer + neon blocks
+        setupTimer(q.getTimeLimit());
+        buildTimerBlocks();
+        updateBlocks(q.getTimeLimit(), q.getTimeLimit());
 
-        // start timer (if any)
-        timeTotal = Math.max(0, q.getTimeLimit());
-        if (timeTotal > 0) {
-            timeLeft = timeTotal;
-            timerLabel.setText(timeLeft + "s");
-            timerBar.setProgress(1.0);
-            startTimer();
-        } else {
-            timerLabel.setText("Untimed");
-            timerBar.setProgress(ProgressBar.INDETERMINATE_PROGRESS);
+        setDefaultButtons(false);
+    }
+
+    private List<String> choicesOf(Question q) {
+        return (q instanceof CombiQuestion cq) ? cq.getChoices() : List.of("True", "False");
+    }
+
+    private void renderRadioChoices(List<String> choices) {
+        // insert before the last child if that's the Submit button, else append
+        int childCount = radioBox.getChildren().size();
+        int insertAt = (childCount > 0 && radioBox.getChildren().get(childCount - 1) instanceof Button)
+                ? childCount - 1 : childCount;
+
+        for (String choice : choices) {
+            RadioButton rb = new RadioButton(choice);
+            rb.setToggleGroup(group);
+            rb.setOnAction(e -> selectedRadio = choice);
+            radioBox.getChildren().add(insertAt++, rb);
         }
     }
+
+    private void setDefaultButtons(boolean nextActive) {
+        if (submitBtn != null) submitBtn.setDefaultButton(!nextActive);
+        if (nextBtn   != null) nextBtn.setDefaultButton(nextActive);
+    }
+
+    // ---------- Timer
+
+    private void setupTimer(int limit) {
+        stopTimer();
+        if (limit > 0) {
+            timerLabel.setText(limit + "s");
+            if (timerBar != null) timerBar.setProgress(1.0);
+
+            timer = new TimeService(
+                    limit,
+                    left -> {
+                        timerLabel.setText(left + "s");
+                        if (timerBar != null) timerBar.setProgress(left / (double) limit);
+                        updateBlocks(left, limit);
+                    },
+                    () -> {
+                        if (!answered) {
+                            Msg.info("⏰ Time's up!");
+                            finalizeQuestion(false, limit, limit);
+                        }
+                    }
+            );
+            timer.start();
+        } else {
+            timer = null;
+            timerLabel.setText("Untimed");
+            if (timerBar != null) timerBar.setProgress(ProgressBar.INDETERMINATE_PROGRESS);
+            if (timerBlocks != null) timerBlocks.getChildren().clear();
+        }
+    }
+
+    private void stopTimer() {
+        if (timer != null) { timer.stop(); timer = null; }
+    }
+
+    private int secondsUsedFor(int limit) {
+        if (limit <= 0 || timer == null) return 0;
+        return Math.max(0, limit - timer.getLeft());
+    }
+
+    private void buildTimerBlocks() {
+        if (timerBlocks == null) return;
+
+        if (!timerBlocks.getStyleClass().contains("timer-blocks")) {
+            timerBlocks.getStyleClass().add("timer-blocks");
+        }
+        if (timerBlocks.getChildren().size() == SEGMENTS) {
+            // reset to "off"
+            timerBlocks.getChildren().forEach(n ->
+                    ((javafx.scene.layout.Region) n).getStyleClass().remove("on"));
+            return;
+        }
+        timerBlocks.getChildren().clear();
+        for (int i = 0; i < SEGMENTS; i++) {
+            var r = new javafx.scene.layout.Region();
+            r.getStyleClass().add("seg");
+            r.setPrefSize(18, 10);
+            timerBlocks.getChildren().add(r);
+        }
+    }
+
+    private void updateBlocks(int left, int limit) {
+        if (timerBlocks == null || limit <= 0) return;
+        if (timerBlocks.getChildren().size() != SEGMENTS) buildTimerBlocks();
+
+        int lit = (int) Math.ceil((left / (double) limit) * SEGMENTS);
+        for (int i = 0; i < SEGMENTS; i++) {
+            var r = (javafx.scene.layout.Region) timerBlocks.getChildren().get(i);
+            r.getStyleClass().remove("on");
+            if (i < lit) r.getStyleClass().add("on");
+        }
+    }
+
+    // ---------- Answers
 
     @FXML
     void onSubmitRadio(ActionEvent e) {
-        if (selectedRadio == null) {
-            new Alert(Alert.AlertType.WARNING, "Please select an option.").showAndWait();
-            return;
+        if (selectedRadio == null) { Msg.warn("Please select an option."); return; }
+        checkAnswer(selectedRadio);
+    }
+    @FXML void onAnswerTrue(ActionEvent e)  { checkAnswer(Boolean.TRUE); }   // kept for safety
+    @FXML void onAnswerFalse(ActionEvent e) { checkAnswer(Boolean.FALSE); }  // kept for safety
+
+    private void checkAnswer(Object answer) {
+        Question q = gm.currentQuestion();
+
+        // normalize boolean radio values ("True"/"False") to Boolean
+        if (!(q instanceof CombiQuestion) && answer instanceof String s) {
+            String v = s.trim().toLowerCase();
+            if (v.equals("true") || v.equals("t") || v.equals("yes") || v.equals("y") || v.equals("1")) {
+                answer = Boolean.TRUE;
+            } else if (v.equals("false") || v.equals("f") || v.equals("no") || v.equals("n") || v.equals("0")) {
+                answer = Boolean.FALSE;
+            }
         }
-        checkAnswerAndFeedback(selectedRadio);
-    }
 
-    @FXML
-    void onAnswerTrue(ActionEvent e) {
-        checkAnswerAndFeedback(Boolean.TRUE);
-    }
-
-    @FXML
-    void onAnswerFalse(ActionEvent e) {
-        checkAnswerAndFeedback(Boolean.FALSE);
-    }
-
-    private void checkAnswerAndFeedback(Object answer) {
-        var gm = GameManager.get();
-        boolean correct = gm.currentQuestion().isCorrect(answer);
-        answeredThisQuestion = true;
+        boolean isCorrect = q.isCorrect(answer);
+        int limit = q.getTimeLimit();
+        int used  = secondsUsedFor(limit);
         stopTimer();
+        finalizeQuestion(isCorrect, limit, used);
+    }
 
-        // compute seconds used
-        int used = 0;
-        int limit = gm.currentQuestion().getTimeLimit();
-        if (limit > 0) used = Math.max(0, limit - timeLeft);
+    private void finalizeQuestion(boolean correct, int limit, int used) {
+        answered = true;
+        if (submitBtn != null) submitBtn.setDisable(true);
 
-        double earned = 0.0;
         if (correct) {
             gm.addCorrect();
-            if (limit > 0) {
-                earned = 1.0 - (used / (double) limit);     // time-weighted
-            } else {
-                earned = 1.0;                                // untimed: full point
-            }
-            gm.addPoints(earned);
-            new Alert(Alert.AlertType.INFORMATION,
-                    String.format("✅ Correct! +%.2f pts", earned)).showAndWait();
+            double pts = (limit > 0) ? (1.0 - (used / (double) limit)) : 1.0;
+            gm.addPoints(Math.max(0, Math.min(1, pts))); // clamp
+            Msg.info(String.format(" Correct! +%.2f pts", pts));
         } else {
-            new Alert(Alert.AlertType.INFORMATION, " Incorrect. +0.00 pts").showAndWait();
+            Msg.info(" Incorrect. +0.00 pts");
         }
 
         updateHeader();
+        boolean hasNext = gm.hasNext();
         nextBtn.setDisable(!gm.hasNext());
-        if (!gm.hasNext()) {
-            goResults();
-        }
+        setDefaultButtons(hasNext);
+
+        if (!gm.hasNext()) goResults();
     }
+
+    // ---------- Nav
 
     @FXML
     void onNext(ActionEvent e) {
-        var gm = GameManager.get();
+        stopTimer();
         if (gm.hasNext()) {
             gm.goNext();
-            renderCurrent();
+            showCurrentQuestion();
             updateHeader();
         }
         nextBtn.setDisable(!gm.hasNext());
     }
 
     @FXML
-    void onBack(ActionEvent e) {
+    void onBack(ActionEvent e) throws Exception {
         stopTimer();
-        try {
-            Stage stage = (Stage)((Node)e.getSource()).getScene().getWindow();
-            ViewLoader.switchTo(stage, "/com/example/javafx_project/Menu.fxml",
-                    "Quiz Game — Menu", 480, 320);
-        } catch (Exception ex) {
-            new Alert(Alert.AlertType.ERROR, ex.getMessage()).showAndWait();
-        }
+        Navigator.go(Navigator.stageOf(e), Paths.MENU, "Quiz Game — Menu", 480, 320);
     }
 
     private void goResults() {
         try {
             Stage stage = (Stage) titleLabel.getScene().getWindow();
-            ViewLoader.switchTo(stage, "/com/example/javafx_project/Results.fxml",
-                    "Results", 560, 380);
+            Navigator.go(stage, Paths.RESULTS, "Results", 560, 420);
         } catch (Exception ex) {
-            new Alert(Alert.AlertType.ERROR, ex.getMessage()).showAndWait();
-        }
-    }
-
-    private void startTimer() {
-        timeline = new javafx.animation.Timeline(
-                new javafx.animation.KeyFrame(javafx.util.Duration.seconds(1), e -> {
-                    timeLeft--;
-                    timerLabel.setText(timeLeft + "s");
-                    timerBar.setProgress(timeLeft / (double) timeTotal);
-                    if (timeLeft <= 0) {
-                        stopTimer();
-                        if (!answeredThisQuestion) {
-                            // time up → auto-check as wrong (no points)
-                            new Alert(Alert.AlertType.INFORMATION, "⏰ Time's up!").showAndWait();
-                            nextBtn.setDisable(!GameManager.get().hasNext());
-                            if (!GameManager.get().hasNext()) goResults();
-                        }
-                    }
-                })
-        );
-        timeline.setCycleCount(timeTotal);
-        timeline.playFromStart();
-    }
-
-    private void stopTimer() {
-        if (timeline != null) {
-            timeline.stop();
-            timeline = null;
+            Msg.error(ex.getMessage());
         }
     }
 }

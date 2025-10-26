@@ -1,23 +1,186 @@
+/* ==========================================
+   QUIZ GAME — NEON / TRON THEME
+   Base: near-black, Accent: neon cyan
+   ========================================== */
+
+/* ---------- Palette ---------- */
 .root {
-    -fx-font-family: "Segoe UI", "Inter", "Arial";
-    -fx-base: #1f2341;
-    -fx-background: #0f1226;
-    -fx-text-fill: #e9ecf1;
+    -fx-font-family: "Segoe UI", "Inter", "JetBrains Mono", "Helvetica Neue", Arial, sans-serif;
+
+    /* theme lookups */
+    -color-accent: #00e5ff;      /* cyan */
+    -color-text:   #f5fbff;
+    -color-subtle: #cfe8f1;
+    -color-bg-0:   #06090f;
+    -color-bg-1:   #0a0f15;
+    -color-card:   rgba(10,16,26,0.85);
+    -color-border: rgba(0,229,255,0.35);
+
+    /* background & default text */
+    -fx-background-color: linear-gradient(to bottom, #0a0f15 0%, #06090f 100%);
+    -fx-text-fill: -color-text;
+}
+* { -fx-accent: #00e5ff; } /* global accent if a control uses it */
+
+/* ---------- Type ---------- */
+.label { -fx-text-fill: #f1f9ff; }
+.title    { -fx-font-size: 24px; -fx-font-weight: 800; -fx-text-fill: #ffffff;
+    -fx-effect: dropshadow(gaussian, rgba(0,229,255,0.35), 14, 0.35, 0, 0); }
+.subtitle { -fx-font-size: 13px; -fx-text-fill: #cfe8f1; }
+.pill     { -fx-background-color: rgba(0,229,255,0.22); -fx-text-fill: #e9feff;
+    -fx-background-radius: 999; -fx-padding: 4 10 4 10; -fx-font-size: 11px; }
+
+/* ---------- Cards / containers ---------- */
+.card {
+    -fx-background-color: rgba(10,16,26,0.85);
+    -fx-background-radius: 16;
+    -fx-border-color: rgba(0,229,255,0.35);
+    -fx-border-width: 1;
+    -fx-border-radius: 16;
+    -fx-padding: 18;
+    -fx-effect: dropshadow(gaussian, rgba(0,229,255,0.12), 24, 0.25, 0, 0);
 }
 
-.label { -fx-text-fill: #e9ecf1; }
-.button {
-    -fx-background-radius: 8;
-    -fx-padding: 8 14 8 14;
+.vbox, .hbox, .grid-pane, .border-pane, .stack-pane { -fx-spacing: 12; }
+
+/* ---------- Inputs ---------- */
+.text-field, .password-field {
+    -fx-background-color: #0d141f, #0d141f, #04080d;
+    -fx-background-insets: 0,1,2;
+    -fx-background-radius: 10,10,10;
+    -fx-text-fill: -color-text;
+    -fx-prompt-text-fill: #88a5b3;
+    -fx-border-color: rgba(0,229,255,0.18);
+    -fx-border-radius: 10;
 }
-.button:hover { -fx-opacity: 0.9; }
+.text-field:focused, .password-field:focused {
+    -fx-border-color: -color-accent;
+    -fx-effect: dropshadow(gaussian, rgba(0,229,255,0.45), 18, 0.4, 0, 0);
+}
+
+/* ---------- Buttons ---------- */
+.button {
+    -fx-background-color: #0f1724;
+    -fx-text-fill: -color-text;
+    -fx-background-radius: 12;
+    -fx-padding: 8 16 8 16;
+    -fx-border-color: rgba(0,229,255,0.18);
+    -fx-border-radius: 12;
+    -fx-effect: dropshadow(gaussian, rgba(0,229,255,0.12), 10, 0.2, 0, 0);
+}
+.button:hover   { -fx-background-color: #152139; -fx-border-color: rgba(0,229,255,0.35); }
+.button:pressed { -fx-background-color: #0d1a2b; -fx-translate-y: 1px; }
+.button:focused { -fx-effect: dropshadow(gaussian, rgba(0,229,255,0.45), 18, 0.4, 0, 0); }
+
+/* Danger */
+.danger {
+    -fx-background-color: #ff4d67;
+    -fx-text-fill: white;
+    -fx-border-color: transparent;
+}
+.danger:hover { -fx-background-color: #ff3352; }
+
+/* ---------- Radio / Check ---------- */
+.radio-button, .check-box { -fx-text-fill: -color-text; }
+.radio-button .radio, .check-box .box {
+    -fx-background-color: #070b13;
+    -fx-border-color: #1b2c44;
+    -fx-background-radius: 999; -fx-border-radius: 999;
+    -fx-padding: 6;
+}
+.radio-button:selected .radio {
+    -fx-background-color: -color-accent;
+    -fx-border-color: -color-accent;
+    -fx-effect: dropshadow(gaussian, rgba(0,229,255,0.55), 14, 0.6, 0, 0);
+}
+
+/* ---------- Progress Bar (if used) ---------- */
+.progress-bar {
+    -fx-background-color: #0b111b;
+    -fx-background-radius: 8;
+    -fx-padding: 2;
+}
+.progress-bar .track {
+    -fx-background-color: #0b111b;
+    -fx-background-radius: 8;
+}
+.progress-bar .bar {
+    -fx-background-color: #00e5ff;
+    -fx-background-radius: 8;
+    -fx-effect: dropshadow(gaussian, rgba(0,229,255,0.45), 12, 0.35, 0, 0);
+}
+
+/* ---------- TableView ---------- */
 .table-view {
     -fx-background-color: transparent;
+    -fx-base: #07101a;
+    -fx-table-cell-border-color: rgba(255,255,255,0.06);
 }
-.table-view .column-header-background { -fx-background-color: #202641; }
+.table-view .column-header-background { -fx-background-color: #0f1827; }
+.table-view .column-header .label { -fx-text-fill: #def3ff; -fx-font-weight: bold; }
+.table-row-cell { -fx-text-fill: -color-text; }
 .table-row-cell:odd { -fx-background-color: rgba(255,255,255,0.03); }
-.progress-bar { -fx-accent: #6dd5ff; }
+.table-row-cell:selected { -fx-background-color: rgba(0,229,255,0.18); }
 
-/* utility */
-.title { -fx-font-size: 18px; -fx-font-weight: bold; }
-.small { -fx-opacity: 0.8; }
+/* ---------- Alerts ---------- */
+.dialog-pane {
+    -fx-background-color: linear-gradient(#0c121d, #080d16);
+    -fx-border-color: rgba(0,229,255,0.35);
+    -fx-border-width: 1;
+    -fx-border-radius: 12;
+    -fx-background-radius: 12;
+}
+.dialog-pane .label { -fx-text-fill: #e7f7ff; }
+.dialog-pane .button { -fx-background-radius: 10; }
+
+/* ---------- Spacing helpers ---------- */
+.mt-8  { -fx-padding: 8 0 0 0; }
+.mt-16 { -fx-padding:16 0 0 0; }
+.mt-24 { -fx-padding:24 0 0 0; }
+
+/* ---------- Segmented timer ---------- */
+.timer-blocks { -fx-padding: 2; }
+.seg {
+    -fx-background-color: #0b111b;
+    -fx-background-radius: 6;
+    -fx-border-color: rgba(0,229,255,0.25);
+    -fx-border-radius: 6;
+    -fx-min-width: 18; -fx-min-height: 10;
+    -fx-pref-width: 18; -fx-pref-height: 10;
+    -fx-max-height: 10;
+    -fx-effect: dropshadow(gaussian, rgba(0,229,255,0.08), 6, 0.2, 0, 0);
+}
+.seg.on {
+    -fx-background-color: -color-accent;
+    -fx-border-color: transparent;
+    -fx-effect: dropshadow(gaussian, rgba(0,229,255,0.55), 14, 0.6, 0, 0);
+}
+
+/* readability bumps */
+.radio-button, .check-box { -fx-text-fill: #f1f8ff; }
+.table-view .table-row-cell { -fx-text-fill: #eaf6ff; }
+.button { -fx-text-fill: #f1f9ff; }
+
+/* ---------- Variants ---------- */
+.btn-primary { -fx-background-color: -color-accent; -fx-text-fill: #001018; -fx-border-color: transparent; }
+/* fallback solid colors for hover/pressed (no color-mix in JavaFX) */
+.btn-primary:hover  { -fx-background-color: #2ff0ff; }  /* a bit lighter */
+.btn-primary:pressed{ -fx-background-color: #00cfe6; }  /* a bit darker */
+
+.btn-ghost   { -fx-background-color: transparent; -fx-border-color: -color-border; -fx-text-fill: #baf6ff; }
+.btn-ghost:hover { -fx-background-color: rgba(0,229,255,0.08); }
+
+/* disabled buttons should still be readable */
+.button:disabled {
+    -fx-opacity: 0.55;
+    -fx-text-fill: #c7d5df;
+    -fx-border-color: rgba(255,255,255,0.12);
+}
+
+/* ---------- Theme classes (used when you set root style class) ---------- */
+.root.cyan  { -color-accent: #00e5ff; }
+.root.pink  { -color-accent: #ff58d1; }
+
+/* layout helpers */
+.row { -fx-alignment: center-left; -fx-spacing: 12; }
+.btn-wide { -fx-min-width: 140; -fx-alignment: center; }

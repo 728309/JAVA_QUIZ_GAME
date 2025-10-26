@@ -6,7 +6,7 @@ public class Result {
     private final String playerName;
     private final int total;
     private final int correct;
-    private final double points;   // <-- NEW
+    private final double points;
     private final String date;
 
     public Result(String quizId, String quizName, String playerName,
@@ -16,7 +16,7 @@ public class Result {
         this.playerName = playerName;
         this.total = total;
         this.correct = correct;
-        this.points = points;     // <-- NEW
+        this.points = points;
         this.date = date;
     }
 
@@ -25,6 +25,6 @@ public class Result {
     public String getPlayerName() { return playerName; }
     public int getTotal()         { return total; }
     public int getCorrect()       { return correct; }
-    public double getPoints()     { return points; }   // <-- NEW
+    public double getPoints()     { return points; }
     public String getDate()       { return date; }
 }

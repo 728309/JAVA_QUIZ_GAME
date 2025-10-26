@@ -5,29 +5,37 @@
 
 <VBox xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
       fx:controller="com.example.javafx_project.controllers.LoginController"
-      spacing="12" alignment="CENTER">
+      spacing="14" alignment="CENTER" styleClass="card"
+      prefWidth="420" prefHeight="260">
     <padding>
         <Insets top="20" right="20" bottom="20" left="20"/>
     </padding>
 
-    <Label text="Sign in" style="-fx-font-size:18px; -fx-font-weight:bold"/>
-    <GridPane hgap="8" vgap="8">
+    <Label text="Sign in" styleClass="title"/>
+
+    <GridPane hgap="10" vgap="10" maxWidth="Infinity">
         <columnConstraints>
             <ColumnConstraints halignment="RIGHT"/>
-            <ColumnConstraints prefWidth="200"/>
+            <ColumnConstraints hgrow="ALWAYS" />
         </columnConstraints>
-        <Label text="Username:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+
+        <Label text="_Username:" mnemonicParsing="true"
+               GridPane.rowIndex="0" GridPane.columnIndex="0" labelFor="$usernameField"/>
         <TextField fx:id="usernameField" promptText="alice"
                    GridPane.rowIndex="0" GridPane.columnIndex="1"/>
-        <Label text="Password:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+
+        <Label text="_Password:" mnemonicParsing="true"
+               GridPane.rowIndex="1" GridPane.columnIndex="0" labelFor="$passwordField"/>
         <PasswordField fx:id="passwordField" promptText="•••••"
                        GridPane.rowIndex="1" GridPane.columnIndex="1"/>
     </GridPane>
 
     <Label fx:id="messageLabel" textFill="red"/>
 
-    <HBox spacing="10">
-        <Button text="Back to Menu" onAction="#onBack"/>
-        <Button text="Login"        onAction="#onLogin"/>
+    <HBox spacing="10" alignment="CENTER">
+        <Button text="_Back to Menu" mnemonicParsing="true"
+                onAction="#onBack" cancelButton="true"/>
+        <Button text="_Login" mnemonicParsing="true"
+                onAction="#onLogin" defaultButton="true"/>
     </HBox>
 </VBox>
