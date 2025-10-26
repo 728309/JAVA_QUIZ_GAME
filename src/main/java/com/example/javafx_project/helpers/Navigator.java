@@ -37,7 +37,7 @@ public final class Navigator {
             root.getStyleClass().setAll(oldClasses);
         }
 
-        URL css = Navigator.class.getResource(Paths.CSS);
+        URL css = Navigator.class.getResource(PathHelper.CSS);
         if (css != null) scene.getStylesheets().add(css.toExternalForm());
 
         stage.setTitle(title);

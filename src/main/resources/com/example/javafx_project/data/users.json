@@ -1,5 +1,6 @@
 [
   { "fullname": "Alice Johnson",  "username": "alice", "password": "alice123" },
   { "fullname": "Bob Williams",   "username": "bob",   "password": "bob123"   },
-  { "fullname": "Teacher",        "username": "admin", "password": "admin"    }
+  { "fullname": "Teacher",        "username": "admin", "password": "admin"    },
+  { "fullname": "User",        "username": "user", "password": "user"    }
 ]

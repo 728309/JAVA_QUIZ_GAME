@@ -2,8 +2,7 @@ package com.example.javafx_project.controllers;
 
 import com.example.javafx_project.helpers.GameManager;
 import com.example.javafx_project.helpers.Navigator;
-import com.example.javafx_project.helpers.Paths;
-import com.example.javafx_project.helpers.Session;
+import com.example.javafx_project.helpers.PathHelper;
 import com.example.javafx_project.model.Player;
 import com.example.javafx_project.service.UserService;
 import javafx.event.ActionEvent;
@@ -27,16 +26,15 @@ public class LoginController {
         Player player = UserService.authenticate(u, p);
         if (player == null) { message("Invalid credentials.", false); return; }
 
-        Session.setCurrent(player);
         GameManager.get().setPlayer(player);
         message("Welcome, " + player.getFullname() + "!", true);
 
-        Navigator.go(Navigator.stageOf(e), Paths.MENU, "Quiz Game — Menu", 480, 320);
+        Navigator.go(Navigator.stageOf(e), PathHelper.MENU, "Quiz Game — Menu", 480, 320);
     }
 
     @FXML
     public void onBack(ActionEvent e) throws Exception {
-        Navigator.go(Navigator.stageOf(e), Paths.MENU, "Quiz Game — Menu", 480, 320);
+        Navigator.go(Navigator.stageOf(e), PathHelper.MENU, "Quiz Game — Menu", 480, 320);
     }
 
     private void message(String text, boolean ok) {

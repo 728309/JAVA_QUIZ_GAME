@@ -71,9 +71,7 @@ public class CombiQuestion implements Question {
 
     @Override
     public List<String> getChoices() {
-        return (type == QuestionType.MULTIPLE)
-                ? Collections.unmodifiableList(choices)
-                : List.of("True", "False");
+        return type == QuestionType.MULTIPLE ? choices : List.of("True", "False");
     }
 
     @Override

@@ -3,8 +3,8 @@ package com.example.javafx_project.controllers;
 import com.example.javafx_project.helpers.Theme;
 import com.example.javafx_project.helpers.GameManager;
 import com.example.javafx_project.helpers.Navigator;
-import com.example.javafx_project.helpers.Msg;
-import com.example.javafx_project.helpers.Paths;
+import com.example.javafx_project.helpers.MsgHelper;
+import com.example.javafx_project.helpers.PathHelper;
 import com.example.javafx_project.model.Quiz;
 import com.example.javafx_project.service.GameLoader;
 import javafx.event.ActionEvent;
@@ -32,7 +32,7 @@ public class MenuController {
     @FXML
     void onLoginClick(ActionEvent e) throws Exception {
         Stage stage = Navigator.stageOf(e);
-        Navigator.go(stage, Paths.LOGIN, "Login", 420, 260);
+        Navigator.go(stage, PathHelper.LOGIN, "Login", 420, 260);
     }
 
     @FXML
@@ -49,31 +49,38 @@ public class MenuController {
             Quiz quiz = GameLoader.loadFromFile(file);
             GameManager.get().setQuiz(quiz);
 
-            Msg.info("Loaded: " + quiz.getTitle() + "  ("
+            MsgHelper.info("Loaded: " + quiz.getTitle() + "  ("
                     + quiz.getQuestions().size() + " questions)");
             startBtn.setDisable(!GameManager.get().readyToStart());
 
             // optional: if you want a default accent after loading, keep this; else delete:
             // Theme.setAccent(stage.getScene(), "#ff58d1");
         } catch (Exception ex) {
-            Msg.error("Failed to load quiz:\n" + ex.getMessage());
+            MsgHelper.error("Failed to load quiz:\n" + ex.getMessage());
         }
     }
 
     @FXML
     void onStartQuizClick(ActionEvent e) throws Exception {
         if (!GameManager.get().readyToStart()) {
-            Msg.warn("Login and load a quiz first.");
+            MsgHelper.warn("Login and load a quiz first.");
             return;
         }
-        Stage stage = Navigator.stageOf(e);
-        Navigator.go(stage, Paths.GAME, "Quiz", 640, 420);
+        boolean ok = MsgHelper.confirmNow(
+                "Before you start",
+                "Once you submit an answer you can’t go back to change it. Continue?"
+        );
+        if (!ok) return;
+
+        var stage = Navigator.stageOf(e);
+        Navigator.go(stage, PathHelper.GAME, "Quiz", 640, 420);
     }
+
 
     @FXML
     void onViewResultsClick(ActionEvent e) throws Exception {
         Stage stage = Navigator.stageOf(e);
-        Navigator.go(stage, Paths.RESULTS, "Results", 560, 420);
+        Navigator.go(stage, PathHelper.RESULTS, "Results", 560, 420);
     }
 
     @FXML
@@ -89,4 +96,6 @@ public class MenuController {
         Theme.setAccent(stage.getScene(), "#ff58d1");
         stage.getScene().getRoot().getStyleClass().setAll("root", "pink");
     }
+
+
 }

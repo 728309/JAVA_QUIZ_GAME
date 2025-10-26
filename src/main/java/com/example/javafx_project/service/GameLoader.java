@@ -2,7 +2,6 @@ package com.example.javafx_project.service;
 
 import com.example.javafx_project.model.CombiQuestion;
 import com.example.javafx_project.model.Question;
-import com.example.javafx_project.model.QuestionType;
 import com.example.javafx_project.model.Quiz;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -25,29 +24,57 @@ public final class GameLoader {
             String title  = root.optString("title", "Untitled Quiz");
 
             List<Question> qs = new ArrayList<>();
-            JSONArray pages = root.getJSONArray("pages");
+            JSONArray pages = root.optJSONArray("pages");
+            if (pages == null || pages.length() == 0) {
+                throw new IllegalArgumentException("Quiz JSON must contain a non-empty 'pages' array.");
+            }
+
             for (int i = 0; i < pages.length(); i++) {
                 JSONObject page = pages.getJSONObject(i);
                 int timeLimit = page.optInt("timeLimit", 0);
 
-                // assume one element per page (as in your JSON)
-                JSONObject el = page.getJSONArray("elements").getJSONObject(0);
-                String type   = el.getString("type");
-                String qTitle = el.getString("title");
+                JSONArray elements = page.optJSONArray("elements");
+                if (elements == null || elements.length() == 0) {
+                    // no question on this page -> skip gracefully
+                    continue;
+                }
+
+                JSONObject el = elements.getJSONObject(0);
+                String type   = el.optString("type", "");
+                String qTitle = el.optString("title", "(untitled)");
 
                 switch (type) {
                     case "radiogroup" -> {
-                        List<String> choices = el.getJSONArray("choices")
-                                .toList().stream().map(Object::toString).toList();
-                        String correct = el.get("correctAnswer").toString();
+                        JSONArray arr = el.optJSONArray("choices");
+                        if (arr == null || arr.length() == 0) {
+                            throw new IllegalArgumentException("Radiogroup question is missing 'choices'.");
+                        }
+                        // map to List<String>
+                        List<String> choices = arr.toList().stream().map(Object::toString).toList();
+
+                        String correct = el.optString("correctAnswer", null);
+                        if (correct == null) {
+                            throw new IllegalArgumentException("Radiogroup question missing 'correctAnswer'.");
+                        }
+
+                        // ✅ use factory
                         qs.add(CombiQuestion.multiple(qTitle, choices, correct, timeLimit));
                     }
                     case "boolean" -> {
+                        if (!el.has("correctAnswer")) {
+                            throw new IllegalArgumentException("Boolean question missing 'correctAnswer'.");
+                        }
                         boolean correct = el.getBoolean("correctAnswer");
+
+                        // ✅ use factory
                         qs.add(CombiQuestion.bool(qTitle, correct, timeLimit));
                     }
-                    default -> throw new IllegalArgumentException("Unsupported element type: " + type);
+                    default -> throw new IllegalArgumentException("Unsupported type: " + type);
                 }
+            }
+
+            if (qs.isEmpty()) {
+                throw new IllegalArgumentException("No valid questions were found in the quiz file.");
             }
 
             return new Quiz(quizId, title, qs);

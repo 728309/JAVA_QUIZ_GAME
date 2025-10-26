@@ -1,0 +1,152 @@
+{
+  "quizId": "tron001",
+  "title": "TRON & TRON: Legacy — Fan Quiz",
+  "description": "Test your knowledge of TRON (1982) and TRON: Legacy (2010).",
+  "pages": [
+    {
+      "timeLimit": 18,
+      "elements": [
+        {
+          "type": "radiogroup",
+          "name": "q1",
+          "title": "Who directed the original TRON (1982)?",
+          "choicesOrder": "random",
+          "choices": ["Steven Lisberger", "Ridley Scott", "James Cameron", "John Carpenter"],
+          "correctAnswer": "Steven Lisberger",
+          "isRequired": true
+        }
+      ]
+    },
+    {
+      "timeLimit": 16,
+      "elements": [
+        {
+          "type": "radiogroup",
+          "name": "q2",
+          "title": "What is the name of Kevin Flynn’s arcade?",
+          "choicesOrder": "random",
+          "choices": ["Flynn’s", "Encom Arcade", "Grid Games", "Lightcycle Lounge"],
+          "correctAnswer": "Flynn’s",
+          "isRequired": true
+        }
+      ]
+    },
+    {
+      "timeLimit": 15,
+      "elements": [
+        {
+          "type": "boolean",
+          "name": "q3",
+          "title": "In TRON (1982), the MCP stands for Master Control Program.",
+          "labelTrue": "True",
+          "labelFalse": "False",
+          "correctAnswer": true,
+          "isRequired": true
+        }
+      ]
+    },
+    {
+      "timeLimit": 20,
+      "elements": [
+        {
+          "type": "radiogroup",
+          "name": "q4",
+          "title": "Which pair composed the soundtrack for TRON: Legacy (2010)?",
+          "choicesOrder": "random",
+          "choices": ["Daft Punk", "Trent Reznor & Atticus Ross", "Hans Zimmer", "Vangelis"],
+          "correctAnswer": "Daft Punk",
+          "isRequired": true
+        }
+      ]
+    },
+    {
+      "timeLimit": 17,
+      "elements": [
+        {
+          "type": "radiogroup",
+          "name": "q5",
+          "title": "What is the name of the digital frontier world the characters enter?",
+          "choicesOrder": "random",
+          "choices": ["The Grid", "The Matrix", "The Nexus", "The Mainframe"],
+          "correctAnswer": "The Grid",
+          "isRequired": true
+        }
+      ]
+    },
+    {
+      "timeLimit": 15,
+      "elements": [
+        {
+          "type": "boolean",
+          "name": "q6",
+          "title": "CLU is originally created by Kevin Flynn.",
+          "labelTrue": "True",
+          "labelFalse": "False",
+          "correctAnswer": true,
+          "isRequired": true
+        }
+      ]
+    },
+    {
+      "timeLimit": 19,
+      "elements": [
+        {
+          "type": "radiogroup",
+          "name": "q7",
+          "title": "Which character is a skilled ISO who helps Sam Flynn?",
+          "choicesOrder": "random",
+          "choices": ["Quorra", "Yori", "Sark", "Gem"],
+          "correctAnswer": "Quorra",
+          "isRequired": true
+        }
+      ]
+    },
+    {
+      "timeLimit": 18,
+      "elements": [
+        {
+          "type": "radiogroup",
+          "name": "q8",
+          "title": "Light cycles leave what behind that can derez opponents?",
+          "choicesOrder": "random",
+          "choices": ["A solid light wall", "Data spikes", "EMP bursts", "Firewall flames"],
+          "correctAnswer": "A solid light wall",
+          "isRequired": true
+        }
+      ]
+    },
+    {
+      "timeLimit": 14,
+      "elements": [
+        {
+          "type": "boolean",
+          "name": "q9",
+          "title": "In TRON: Legacy, Sam Flynn is Kevin Flynn’s grandson.",
+          "labelTrue": "True",
+          "labelFalse": "False",
+          "correctAnswer": false,
+          "isRequired": true
+        }
+      ]
+    },
+    {
+      "timeLimit": 20,
+      "elements": [
+        {
+          "type": "radiogroup",
+          "name": "q10",
+          "title": "What iconic object do programs and users throw in disc wars?",
+          "choicesOrder": "random",
+          "choices": ["Identity Disc", "Data Frisbee", "Code Ring", "Command Plate"],
+          "correctAnswer": "Identity Disc",
+          "isRequired": true
+        }
+      ]
+    }
+  ],
+  "completedHtml": "<h4>You got <b>{correctAnswers}</b> out of <b>{questionCount}</b> correct.</h4>",
+  "completedHtmlOnCondition": [
+    { "expression": "{correctAnswers} == 0", "html": "<h4>Unfortunately, none of your answers are correct. Please try again.</h4>" },
+    { "expression": "{correctAnswers} == {questionCount}", "html": "<h4>Excellent! You answered all questions correctly 🎉</h4>" }
+  ]
+}

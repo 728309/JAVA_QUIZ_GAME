@@ -2,8 +2,8 @@ package com.example.javafx_project.controllers;
 
 import com.example.javafx_project.helpers.GameManager;
 import com.example.javafx_project.helpers.Navigator;
-import com.example.javafx_project.helpers.Msg;
-import com.example.javafx_project.helpers.Paths;
+import com.example.javafx_project.helpers.MsgHelper;
+import com.example.javafx_project.helpers.PathHelper;
 import com.example.javafx_project.model.Result;
 import com.example.javafx_project.service.ResultService;
 import javafx.beans.property.SimpleStringProperty;
@@ -82,7 +82,7 @@ public class ResultController {
 
     @FXML
     public void onBack(ActionEvent e) throws Exception {
-        Navigator.go(Navigator.stageOf(e), Paths.MENU, "Quiz Game — Menu", 480, 320);
+        Navigator.go(Navigator.stageOf(e), PathHelper.MENU, "Quiz Game — Menu", 480, 320);
     }
 
     @FXML
@@ -91,12 +91,12 @@ public class ResultController {
             if (savedFile == null && !items.isEmpty()) {
                 savedFile = ResultService.fileFor(items.get(0).getQuizId());
             }
-            if (savedFile == null) { Msg.info("No results file yet. Play a quiz first."); return; }
+            if (savedFile == null) { MsgHelper.info("No results file yet. Play a quiz first."); return; }
 
             if (Desktop.isDesktopSupported()) Desktop.getDesktop().open(savedFile.toFile());
-            else Msg.info("Saved file: " + savedFile.toAbsolutePath());
+            else MsgHelper.info("Saved file: " + savedFile.toAbsolutePath());
         } catch (IOException ex) {
-            Msg.error("Cannot open file: " + ex.getMessage());
+            MsgHelper.error("Cannot open file: " + ex.getMessage());
         }
     }
 

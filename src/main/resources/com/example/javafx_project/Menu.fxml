@@ -1,40 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?import javafx.geometry.Insets?>
+
+<?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox xmlns="http://javafx.com/javafx"
-      xmlns:fx="http://javafx.com/fxml"
-      fx:controller="com.example.javafx_project.controllers.MenuController"
-      alignment="CENTER" spacing="16" styleClass="card"
-      prefWidth="520" prefHeight="360">
+<VBox alignment="CENTER" prefHeight="360" prefWidth="520" spacing="16" styleClass="card" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.javafx_project.controllers.MenuController">
     <padding>
-        <Insets top="20" right="20" bottom="20" left="20"/>
+        <Insets bottom="20" left="20" right="20" top="20" />
     </padding>
 
-    <Label text="Quiz Game — Menu" styleClass="title" />
-    <Label fx:id="welcomeLabel" text="Not signed in" styleClass="subtitle" />
+    <Label styleClass="title" text="Quiz Game " />
+    <Label fx:id="welcomeLabel" styleClass="subtitle" text="Not signed in" />
+     <Button mnemonicParsing="true" onAction="#onLoginClick" styleClass="btn-primary btn-wide" text=" Login" />
 
     <!-- Actions -->
-    <HBox spacing="10" alignment="CENTER">
-        <Button text="_Login" mnemonicParsing="true"
-                onAction="#onLoginClick" styleClass="btn-primary btn-wide"/>
-        <Button text="Load _Quiz (JSON)" mnemonicParsing="true"
-                onAction="#onLoadQuizClick" styleClass="btn-wide"/>
-        <Button fx:id="startBtn" text="_Start Quiz" mnemonicParsing="true"
-                disable="true" onAction="#onStartQuizClick"
-                styleClass="btn-wide" defaultButton="true"/>
-        <Button text="_View Results" mnemonicParsing="true"
-                onAction="#onViewResultsClick" styleClass="btn-ghost btn-wide"/>
+    <HBox alignment="CENTER" spacing="10">
+        <Button fx:id="startBtn" defaultButton="true" disable="true" mnemonicParsing="true" onAction="#onStartQuizClick" styleClass="btn-wide" text=" Start " />
+        <Button mnemonicParsing="true" onAction="#onViewResultsClick" styleClass="btn-ghost btn-wide" text=" View Results" />
     </HBox>
+     <Button mnemonicParsing="true" onAction="#onLoadQuizClick" styleClass="btn-wide" text="Load  Quiz (JSON)" />
 
     <!-- Theme Switcher -->
     <HBox alignment="CENTER" spacing="12" styleClass="mt-16">
-        <Label text="Theme:" styleClass="subtitle"/>
-        <Button text="_Cyan" mnemonicParsing="true"
-                onAction="#onThemeCyan" styleClass="btn-ghost btn-wide"/>
-        <Button text="_Pink" mnemonicParsing="true"
-                onAction="#onThemePink" styleClass="btn-ghost btn-wide"/>
+        <Label styleClass="subtitle" text="Theme:" />
+        <Button mnemonicParsing="true" onAction="#onThemeCyan" styleClass="btn-ghost btn-wide" text="_Cyan" />
+        <Button mnemonicParsing="true" onAction="#onThemePink" styleClass="btn-ghost btn-wide" text="_Pink" />
     </HBox>
 
     <Region VBox.vgrow="ALWAYS" /> <!-- keeps content centered when window grows -->

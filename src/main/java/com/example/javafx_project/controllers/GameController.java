@@ -2,8 +2,8 @@ package com.example.javafx_project.controllers;
 
 import com.example.javafx_project.helpers.GameManager;
 import com.example.javafx_project.helpers.Navigator;
-import com.example.javafx_project.helpers.Msg;
-import com.example.javafx_project.helpers.Paths;
+import com.example.javafx_project.helpers.MsgHelper;
+import com.example.javafx_project.helpers.PathHelper;
 import com.example.javafx_project.model.CombiQuestion;
 import com.example.javafx_project.model.Question;
 import com.example.javafx_project.service.TimeService;
@@ -109,7 +109,7 @@ public class GameController {
                     },
                     () -> {
                         if (!answered) {
-                            Msg.info("⏰ Time's up!");
+                            MsgHelper.info("⏰ Time's up!");
                             finalizeQuestion(false, limit, limit);
                         }
                     }
@@ -169,7 +169,7 @@ public class GameController {
 
     @FXML
     void onSubmitRadio(ActionEvent e) {
-        if (selectedRadio == null) { Msg.warn("Please select an option."); return; }
+        if (selectedRadio == null) { MsgHelper.warn("Please select an option."); return; }
         checkAnswer(selectedRadio);
     }
     @FXML void onAnswerTrue(ActionEvent e)  { checkAnswer(Boolean.TRUE); }   // kept for safety
@@ -203,9 +203,9 @@ public class GameController {
             gm.addCorrect();
             double pts = (limit > 0) ? (1.0 - (used / (double) limit)) : 1.0;
             gm.addPoints(Math.max(0, Math.min(1, pts))); // clamp
-            Msg.info(String.format(" Correct! +%.2f pts", pts));
+            MsgHelper.info(String.format(" Correct! +%.2f pts", pts));
         } else {
-            Msg.info(" Incorrect. +0.00 pts");
+            MsgHelper.info(" Incorrect. +0.00 pts");
         }
 
         updateHeader();
@@ -232,15 +232,15 @@ public class GameController {
     @FXML
     void onBack(ActionEvent e) throws Exception {
         stopTimer();
-        Navigator.go(Navigator.stageOf(e), Paths.MENU, "Quiz Game — Menu", 480, 320);
+        Navigator.go(Navigator.stageOf(e), PathHelper.MENU, "Quiz Game — Menu", 480, 320);
     }
 
     private void goResults() {
         try {
             Stage stage = (Stage) titleLabel.getScene().getWindow();
-            Navigator.go(stage, Paths.RESULTS, "Results", 560, 420);
+            Navigator.go(stage, PathHelper.RESULTS, "Results", 560, 420);
         } catch (Exception ex) {
-            Msg.error(ex.getMessage());
+            MsgHelper.error(ex.getMessage());
         }
     }
 }
