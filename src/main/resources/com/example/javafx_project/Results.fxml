@@ -14,8 +14,10 @@
     </padding>
 
     <children>
-        <Label text="Results" styleClass="title"/>
-        <Label fx:id="summaryLabel" styleClass="subtitle"/>
+        <Label fx:id="quizNameLabel" styleClass="title"/>
+        <Label fx:id="yourScoreLabel" styleClass="subtitle"/>
+        <Label fx:id="completedMsgLabel" wrapText="true" />
+
 
         <TableView fx:id="table" prefHeight="300" prefWidth="520">
             <columns>
@@ -29,6 +31,7 @@
 
         <HBox spacing="10">
             <Button text="Back to Menu"     onAction="#onBack"/>
+            <Button text="Export Leaderboard (CSV)" onAction="#onExportCsv" styleClass="btn-ghost"/>
             <Button text="Open Results File" onAction="#onOpenFile" styleClass="btn-ghost"/>
             <Button text="Refresh"           onAction="#onRefresh"/>
         </HBox>

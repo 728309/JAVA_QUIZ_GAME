@@ -96,6 +96,15 @@ public class GameController {
 
     private void setupTimer(int limit) {
         stopTimer();
+
+        if (gm.isPracticeMode()) {
+            timerLabel.setText("Practice");
+            if (timerBar != null) timerBar.setProgress(ProgressBar.INDETERMINATE_PROGRESS);
+            if (timerBlocks != null) timerBlocks.getChildren().clear();
+            timer = null;
+            return;
+        }
+
         if (limit > 0) {
             timerLabel.setText(limit + "s");
             if (timerBar != null) timerBar.setProgress(1.0);

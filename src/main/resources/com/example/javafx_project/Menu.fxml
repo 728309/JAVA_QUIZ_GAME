@@ -16,7 +16,9 @@
     <!-- Actions -->
     <HBox alignment="CENTER" spacing="10">
         <Button fx:id="startBtn" defaultButton="true" disable="true" mnemonicParsing="true" onAction="#onStartQuizClick" styleClass="btn-wide" text=" Start " />
+        <Button text="Practice Mode" onAction="#onPracticeModeClick" styleClass="btn-ghost"/>
         <Button mnemonicParsing="true" onAction="#onViewResultsClick" styleClass="btn-ghost btn-wide" text=" View Results" />
+
     </HBox>
      <Button mnemonicParsing="true" onAction="#onLoadQuizClick" styleClass="btn-wide" text="Load  Quiz (JSON)" />
 

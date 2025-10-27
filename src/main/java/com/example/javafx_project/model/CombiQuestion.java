@@ -1,6 +1,5 @@
 package com.example.javafx_project.model;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 

@@ -35,41 +35,40 @@ public final class GameLoader {
 
                 JSONArray elements = page.optJSONArray("elements");
                 if (elements == null || elements.length() == 0) {
-                    // no question on this page -> skip gracefully
+                    // page with no questions; skip gracefully
                     continue;
                 }
 
-                JSONObject el = elements.getJSONObject(0);
-                String type   = el.optString("type", "");
-                String qTitle = el.optString("title", "(untitled)");
+                // some authors put multiple questions (elements) on one page
+                for (int j = 0; j < elements.length(); j++) {
+                    JSONObject el = elements.getJSONObject(j);
 
-                switch (type) {
-                    case "radiogroup" -> {
-                        JSONArray arr = el.optJSONArray("choices");
-                        if (arr == null || arr.length() == 0) {
-                            throw new IllegalArgumentException("Radiogroup question is missing 'choices'.");
+                    String type   = el.optString("type", "");
+                    String qTitle = el.optString("title", "(untitled)");
+
+                    switch (type) {
+                        case "radiogroup" -> {
+                            JSONArray arr = el.optJSONArray("choices");
+                            if (arr == null || arr.length() == 0)
+                                throw new IllegalArgumentException("Radiogroup question is missing 'choices'.");
+                            List<String> choices = arr.toList().stream().map(Object::toString).toList();
+
+                            String correct = el.optString("correctAnswer", null);
+                            if (correct == null)
+                                throw new IllegalArgumentException("Radiogroup question missing 'correctAnswer'.");
+
+                            qs.add(CombiQuestion.multiple(qTitle, choices, correct, timeLimit));
                         }
-                        // map to List<String>
-                        List<String> choices = arr.toList().stream().map(Object::toString).toList();
 
-                        String correct = el.optString("correctAnswer", null);
-                        if (correct == null) {
-                            throw new IllegalArgumentException("Radiogroup question missing 'correctAnswer'.");
+                        case "boolean" -> {
+                            if (!el.has("correctAnswer"))
+                                throw new IllegalArgumentException("Boolean question missing 'correctAnswer'.");
+                            boolean correct = el.getBoolean("correctAnswer");
+                            qs.add(CombiQuestion.bool(qTitle, correct, timeLimit));
                         }
 
-                        // ✅ use factory
-                        qs.add(CombiQuestion.multiple(qTitle, choices, correct, timeLimit));
+                        default -> throw new IllegalArgumentException("Unsupported type: " + type);
                     }
-                    case "boolean" -> {
-                        if (!el.has("correctAnswer")) {
-                            throw new IllegalArgumentException("Boolean question missing 'correctAnswer'.");
-                        }
-                        boolean correct = el.getBoolean("correctAnswer");
-
-                        // ✅ use factory
-                        qs.add(CombiQuestion.bool(qTitle, correct, timeLimit));
-                    }
-                    default -> throw new IllegalArgumentException("Unsupported type: " + type);
                 }
             }
 
